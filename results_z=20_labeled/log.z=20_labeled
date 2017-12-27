@@ -1,0 +1,23 @@
+Extracting MNIST_data/train-images-idx3-ubyte.gz
+Extracting MNIST_data/train-labels-idx1-ubyte.gz
+Extracting MNIST_data/t10k-images-idx3-ubyte.gz
+Extracting MNIST_data/t10k-labels-idx1-ubyte.gz
+2017-12-27 12:38:55.542404: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+WARNING:tensorflow:From /home/eric/venv/LabeledVarAutoencoder/lib/python3.5/site-packages/tensorflow/python/util/tf_should_use.py:107: initialize_all_variables (from tensorflow.python.ops.variables) is deprecated and will be removed after 2017-03-02.
+Instructions for updating:
+Use `tf.global_variables_initializer` instead.
+epoch 0: genloss 543.440673828125 latloss 118.66688537597656
+epoch 1: genloss 125.47920227050781 latloss 12.728499412536621
+epoch 2: genloss 94.460693359375 latloss 18.792922973632812
+epoch 3: genloss 82.69959259033203 latloss 21.04941177368164
+epoch 4: genloss 86.82867431640625 latloss 22.40958023071289
+epoch 5: genloss 77.84040832519531 latloss 23.209335327148438
+epoch 6: genloss 79.42840576171875 latloss 23.416963577270508
+epoch 7: genloss 81.07795715332031 latloss 22.148452758789062
+epoch 8: genloss 77.22657012939453 latloss 23.177146911621094
+epoch 9: genloss 76.96513366699219 latloss 22.468666076660156
+epoch 10: genloss 79.42648315429688 latloss 23.413280487060547
+epoch 11: genloss 81.54195404052734 latloss 23.29180335998535
+epoch 12: genloss 77.6023941040039 latloss 22.779190063476562
+epoch 13: genloss 76.19082641601562 latloss 21.995126724243164
+epoch 14: genloss 78.42677307128906 latloss 22.911191940307617
