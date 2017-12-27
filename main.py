@@ -12,8 +12,7 @@ class LatentAttention():
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_samples = self.mnist.train.num_examples
 
-        self.n_hidden = 500
-        self.n_z = 31
+        self.n_z = 20
         self.batchsize = 100
 
         self.images = tf.placeholder(tf.float32, [None, 784])
@@ -63,7 +62,7 @@ class LatentAttention():
         saver = tf.train.Saver(max_to_keep=2)
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
-            for epoch in range(80):
+            for epoch in range(2):
                 for idx in range(int(self.n_samples / self.batchsize)):
                     batch = self.mnist.train.next_batch(self.batchsize)[0]
                     _, gen_loss, lat_loss = sess.run((self.optimizer, self.generation_loss, self.latent_loss), feed_dict={self.images: batch})
