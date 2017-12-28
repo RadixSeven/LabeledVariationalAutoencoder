@@ -60,22 +60,22 @@ class LatentAttention():
         with tf.variable_scope("recognition"):
 
             h1 = lrelu(conv2d(
-                input_images, 1, 16, filter_h=self.n_labels*5,
-                filter_w=5, name="d_h1")) # 280x28x1 -> 14x14x16
-            h2 = lrelu(conv2d(h1, 16, 32, "d_h2")) # 14x14x16 -> 7x7x32
-            h2_flat = tf.reshape(h2,[self.batchsize, 7*7*32])
+                input_images, 1, 32, filter_h=self.n_labels*5,
+                filter_w=5, name="d_h1")) # 280x28x1 -> 14x14x32
+            h2 = lrelu(conv2d(h1, 32, 64, "d_h2")) # 14x14x32 -> 7x7x64
+            h2_flat = tf.reshape(h2,[self.batchsize, 7*7*64])
 
-            w_mean = dense(h2_flat, 7*7*32, self.n_z, "w_mean")
-            w_stddev = dense(h2_flat, 7*7*32, self.n_z, "w_stddev")
+            w_mean = dense(h2_flat, 7*7*64, self.n_z, "w_mean")
+            w_stddev = dense(h2_flat, 7*7*64, self.n_z, "w_stddev")
 
         return w_mean, w_stddev
 
     # decoder
     def generation(self, z):
         with tf.variable_scope("generation"):
-            z_develop = dense(z, self.n_z+self.n_labels, 7*7*32, scope='z_matrix')
-            z_matrix = tf.nn.relu(tf.reshape(z_develop, [self.batchsize, 7, 7, 32]))
-            h1 = tf.nn.relu(conv_transpose(z_matrix, [self.batchsize, 14, 14, 16], "g_h1"))
+            z_develop = dense(z, self.n_z+self.n_labels, 7*7*64, scope='z_matrix')
+            z_matrix = tf.nn.relu(tf.reshape(z_develop, [self.batchsize, 7, 7, 64]))
+            h1 = tf.nn.relu(conv_transpose(z_matrix, [self.batchsize, 14, 14, 32], "g_h1"))
             h2 = conv_transpose(h1, [self.batchsize, 28, 28, 1], "g_h2")
             h2 = tf.nn.sigmoid(h2)
 
@@ -89,7 +89,7 @@ class LatentAttention():
         saver = tf.train.Saver(max_to_keep=2)
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
-            for epoch in range(15):
+            for epoch in range(30):
                 for idx in range(int(self.n_samples / self.batchsize)):
                     batch_images, batch_labels = self.mnist.train.next_batch(
                         self.batchsize)
