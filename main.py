@@ -50,7 +50,7 @@ class LatentAttention():
 
         self.latent_loss = 0.5 * tf.reduce_sum(tf.square(z_mean) + tf.square(z_stddev) - tf.log(tf.square(z_stddev)) - 1,1)
         self.cost = tf.reduce_mean(self.generation_loss + self.latent_loss)
-        self.optimizer = tf.train.AdamOptimizer(0.001).minimize(self.cost)
+        self.optimizer = tf.train.AdamOptimizer(0.0001).minimize(self.cost)
 
 
     # encoder
