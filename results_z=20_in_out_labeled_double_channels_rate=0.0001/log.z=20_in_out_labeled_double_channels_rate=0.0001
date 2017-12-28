@@ -1,0 +1,38 @@
+Extracting MNIST_data/train-images-idx3-ubyte.gz
+Extracting MNIST_data/train-labels-idx1-ubyte.gz
+Extracting MNIST_data/t10k-images-idx3-ubyte.gz
+Extracting MNIST_data/t10k-labels-idx1-ubyte.gz
+2017-12-28 09:57:43.621139: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+WARNING:tensorflow:From /home/eric/venv/LabeledVarAutoencoder/lib/python3.5/site-packages/tensorflow/python/util/tf_should_use.py:107: initialize_all_variables (from tensorflow.python.ops.variables) is deprecated and will be removed after 2017-03-02.
+Instructions for updating:
+Use `tf.global_variables_initializer` instead.
+epoch 0: genloss 543.3857421875 latloss 101.27787017822266
+epoch 1: genloss 194.9945068359375 latloss 37.327415466308594
+epoch 2: genloss 168.31459045410156 latloss 16.25832748413086
+epoch 3: genloss 167.20823669433594 latloss 11.045584678649902
+epoch 4: genloss 155.38710021972656 latloss 10.091946601867676
+epoch 5: genloss 144.95571899414062 latloss 10.038182258605957
+epoch 6: genloss 134.40744018554688 latloss 10.004409790039062
+epoch 7: genloss 133.49586486816406 latloss 10.125529289245605
+epoch 8: genloss 128.24847412109375 latloss 10.160663604736328
+epoch 9: genloss 125.30946350097656 latloss 10.710206031799316
+epoch 10: genloss 126.33917236328125 latloss 12.154330253601074
+epoch 11: genloss 113.17742156982422 latloss 12.047755241394043
+epoch 12: genloss 108.2667465209961 latloss 12.960071563720703
+epoch 13: genloss 102.61016845703125 latloss 13.85422134399414
+epoch 14: genloss 101.89086151123047 latloss 13.958456039428711
+epoch 15: genloss 102.7735824584961 latloss 15.055228233337402
+epoch 16: genloss 93.01681518554688 latloss 14.703049659729004
+epoch 17: genloss 95.76454162597656 latloss 14.895783424377441
+epoch 18: genloss 93.42877197265625 latloss 16.131107330322266
+epoch 19: genloss 90.46029663085938 latloss 15.613079071044922
+epoch 20: genloss 91.52295684814453 latloss 15.851840019226074
+epoch 21: genloss 90.85852813720703 latloss 15.570959091186523
+epoch 22: genloss 84.94837188720703 latloss 16.74378204345703
+epoch 23: genloss 81.25678253173828 latloss 16.266679763793945
+epoch 24: genloss 90.60258483886719 latloss 16.98495101928711
+epoch 25: genloss 86.27639770507812 latloss 17.765378952026367
+epoch 26: genloss 81.14139556884766 latloss 16.799964904785156
+epoch 27: genloss 89.0144271850586 latloss 18.12646484375
+epoch 28: genloss 85.55862426757812 latloss 18.051801681518555
+epoch 29: genloss 83.83485412597656 latloss 18.213336944580078
