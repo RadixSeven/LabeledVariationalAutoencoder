@@ -12,15 +12,30 @@ class LatentAttention():
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_samples = self.mnist.train.num_examples
 
+        self.n_side = 28
+        self.n_in = self.n_side * self.n_side
         self.n_z = 20
         self.n_labels = 10
         self.batchsize = 100
 
         # n x 784
-        self.images = tf.placeholder(tf.float32, [None, 784])
+        self.images = tf.placeholder(tf.float32, [None, self.n_in])
         # n x n_labels
         self.labels = tf.placeholder(tf.float32, [None, self.n_labels])
-        image_matrix = tf.reshape(self.images,[-1, 28, 28, 1])
+
+        # Stack images and labels so same shape then dot-product so each
+        # stack of images has most of the items being 0 and 1 being non-zero
+        # (the one corresponding to the label is non-zero)
+        #
+        # both n x n_labels x image_size
+        label_stack = tf.tile(tf.reshape(self.labels, [-1, self.n_labels, 1]),
+                              [1, 1, self.n_in])
+        image_stack = tf.tile(tf.reshape(self.images, [-1, 1, self.n_in]),
+                              [1, self.n_labels, 1])
+        labeled_image_stack = tf.multiply(label_stack, image_stack)
+
+
+        image_matrix = tf.reshape(labeled_image_stack,[-1, self.n_side*self.n_labels, self.n_side, 1])
         z_mean, z_stddev = self.recognition(image_matrix)
         samples = tf.random_normal([self.batchsize,self.n_z],0,1,dtype=tf.float32)
         # n x n_z
@@ -39,11 +54,14 @@ class LatentAttention():
 
 
     # encoder
-    # Takes n x 28 x 28 x 1 image tensor
+    # Takes n x 28*n_labels x 28 x 1 image tensor
     # outputs two batchsize x n_z tensors ... mean, standard dev
     def recognition(self, input_images):
         with tf.variable_scope("recognition"):
-            h1 = lrelu(conv2d(input_images, 1, 16, "d_h1")) # 28x28x1 -> 14x14x16
+
+            h1 = lrelu(conv2d(
+                input_images, 1, 16, filter_h=self.n_labels*5,
+                filter_w=5, name="d_h1")) # 280x28x1 -> 14x14x16
             h2 = lrelu(conv2d(h1, 16, 32, "d_h2")) # 14x14x16 -> 7x7x32
             h2_flat = tf.reshape(h2,[self.batchsize, 7*7*32])
 

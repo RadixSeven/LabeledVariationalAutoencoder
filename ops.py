@@ -35,12 +35,17 @@ class batch_norm(object):
 
         return normed
 
-# standard convolution layer
-def conv2d(x, inputFeatures, outputFeatures, name):
+# 5x5 convolution layer with 2x2 stride
+def conv2d(x, inputFeatures, outputFeatures, name, filter_h=5, filter_w=5):
     with tf.variable_scope(name):
-        w = tf.get_variable("w",[5,5,inputFeatures, outputFeatures], initializer=tf.truncated_normal_initializer(stddev=0.02))
-        b = tf.get_variable("b",[outputFeatures], initializer=tf.constant_initializer(0.0))
-        conv = tf.nn.conv2d(x, w, strides=[1,2,2,1], padding="SAME") + b
+        w = tf.get_variable("w",[
+            filter_h, filter_w, inputFeatures, outputFeatures],
+            initializer=tf.truncated_normal_initializer(stddev=0.02))
+        b = tf.get_variable("b",[outputFeatures],
+                            initializer=tf.constant_initializer(0.0))
+        conv = tf.nn.conv2d(
+            x, w, strides=[
+                1, 2*filter_h/5, 2*filter_w/5, 1], padding="SAME") + b
         return conv
 
 def conv_transpose(x, outputShape, name):
