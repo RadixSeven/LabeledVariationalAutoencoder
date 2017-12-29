@@ -17,3 +17,4 @@ python3 -m venv "$env_dir"
 echo "Upgrading pip and installing deps"
 pip3 install --upgrade pip
 pip3 install tensorflow matplotlib scipy pillow
+echo -e "\nNow run\n\nsource $env_dir/bin/activate"
