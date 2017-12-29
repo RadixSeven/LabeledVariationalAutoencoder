@@ -4,7 +4,9 @@ IFS=$'\n\t'
 
 env_dir=~/venv/LabeledVarAutoencoder
 
-deactivate
+if [ -n "$(type -t deactivate)" ] && [ "$(type -t deactivate)" = function ]; then
+    deactivate
+fi
 echo "Deleting and re-initalizing virtualenv"
 rm -rf "$env_dir"
 mkdir -p "$env_dir"
