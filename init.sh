@@ -16,5 +16,14 @@ python3 -m venv "$env_dir"
 . "$env_dir/bin/activate"
 echo "Upgrading pip and installing deps"
 pip3 install --upgrade pip
-pip3 install tensorflow matplotlib scipy pillow
+
+# Use
+if [ -e /usr/lib/x86_64-linux-gnu/libcudnn.so ]; then
+    echo "Using tensorflow gpu"
+    tensorflow=tensorflow-gpu
+else
+    echo "Using non-gpu tensorflow"
+    tensorflow=tensorflow
+fi
+pip3 install $tensorflow matplotlib scipy pillow
 echo -e "\nNow run\n\nsource $env_dir/bin/activate"
