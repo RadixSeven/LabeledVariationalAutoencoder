@@ -8,13 +8,18 @@ from utils import *
 from ops import *
 
 class LatentAttention():
-    def __init__(self):
+    def __init__(self, frac_train, n_hidden, n_z, batchsize):
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-        self.n_samples = self.mnist.train.num_examples
+        self.n_train = int(frac_train * self.mnist.train.num_examples)
+        self.n_test = self.mnist.train.num_examples - self.n_train
+        # TODO: replace the next_batch method with one that respects
+        # test and training data and works off of the original
+        # dataset. Subclass that just acts as if the training samples
+        # end after n_train samples
 
-        self.n_hidden = 500
-        self.n_z = 20
-        self.batchsize = 100
+        self.n_hidden = n_hidden
+        self.n_z = n_z
+        self.batchsize = batchize
 
         self.images = tf.placeholder(tf.float32, [None, 784])
         image_matrix = tf.reshape(self.images,[-1, 28, 28, 1])
@@ -64,11 +69,11 @@ class LatentAttention():
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
             for epoch in range(10):
-                for idx in range(int(self.n_samples / self.batchsize)):
+                for idx in range(int(self.n_train / self.batchsize)):
                     batch = self.mnist.train.next_batch(self.batchsize)[0]
                     _, gen_loss, lat_loss = sess.run((self.optimizer, self.generation_loss, self.latent_loss), feed_dict={self.images: batch})
                     # dumb hack to print cost every epoch
-                    if idx % (self.n_samples - 3) == 0:
+                    if idx % (self.n_train - 3) == 0:
                         print("epoch {}: genloss {} latloss {}".format(epoch, np.mean(gen_loss), np.mean(lat_loss)))
                         saver.save(sess, os.getcwd()+"/training/train",global_step=epoch)
                         generated_test = sess.run(self.generated_images, feed_dict={self.images: visualization})
@@ -77,5 +82,5 @@ class LatentAttention():
 
 
 if __name__ == '__main__':
-    model = LatentAttention()
+    model = LatentAttention(1, 500, 20, 100)
     model.train()
