@@ -76,5 +76,6 @@ class LatentAttention():
                         ims("results/"+str(epoch)+".jpg",merge(generated_test[:64],[8,8]))
 
 
-model = LatentAttention()
-model.train()
+if __name__ == '__main__':
+    model = LatentAttention()
+    model.train()
