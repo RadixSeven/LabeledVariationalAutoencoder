@@ -6,20 +6,24 @@ import os
 from scipy.misc import imsave as ims
 from utils import *
 from ops import *
+from next_batch_partial import next_batch_partial
 
 class LatentAttention():
-    def __init__(self, frac_train, n_hidden, n_z, batchsize):
+    def __init__(self, frac_train, n_z, batchsize):
+        """
+        frac_train: (0..1) the fraction of the training set to use for
+            training ... the rest will be used for validation
+        n_z: (positive int) number of latent gaussian variables consumed by
+            the decoder / produced by the endcoder
+        batchize: (positive int) number of items to include in each training
+            minibatch
+        """
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_train = int(frac_train * self.mnist.train.num_examples)
         self.n_test = self.mnist.train.num_examples - self.n_train
-        # TODO: replace the next_batch method with one that respects
-        # test and training data and works off of the original
-        # dataset. Subclass that just acts as if the training samples
-        # end after n_train samples
 
-        self.n_hidden = n_hidden
         self.n_z = n_z
-        self.batchsize = batchize
+        self.batchsize = batchsize
 
         self.images = tf.placeholder(tf.float32, [None, 784])
         image_matrix = tf.reshape(self.images,[-1, 28, 28, 1])
@@ -61,7 +65,8 @@ class LatentAttention():
         return h2
 
     def train(self):
-        visualization = self.mnist.train.next_batch(self.batchsize)[0]
+        visualization, vis_labels = next_batch_partial(
+            self.mnist.train, self.batchsize, self.n_train)
         reshaped_vis = visualization.reshape(self.batchsize,28,28)
         ims("results/base.jpg",merge(reshaped_vis[:64],[8,8]))
         # train
@@ -70,7 +75,8 @@ class LatentAttention():
             sess.run(tf.initialize_all_variables())
             for epoch in range(10):
                 for idx in range(int(self.n_train / self.batchsize)):
-                    batch = self.mnist.train.next_batch(self.batchsize)[0]
+                    batch, batch_labels = next_batch_partial(
+                        self.mnist.train, self.batchsize, self.n_train)
                     _, gen_loss, lat_loss = sess.run((self.optimizer, self.generation_loss, self.latent_loss), feed_dict={self.images: batch})
                     # dumb hack to print cost every epoch
                     if idx % (self.n_train - 3) == 0:
@@ -82,5 +88,5 @@ class LatentAttention():
 
 
 if __name__ == '__main__':
-    model = LatentAttention(1, 500, 20, 100)
+    model = LatentAttention(1, 20, 100)
     model.train()
