@@ -31,13 +31,13 @@ class LatentAttention():
         samples = tf.random_normal([self.batchsize,self.n_z],0,1,dtype=tf.float32)
         guessed_z = z_mean + (z_stddev * samples)
 
-        self.generated_images = self.generation(guessed_z)
-        generated_flat = tf.reshape(self.generated_images, [self.batchsize, 28*28])
+        self.generate_images = self.generation(guessed_z)
+        generated_flat = tf.reshape(self.generate_images, [self.batchsize, 28*28])
 
-        self.generation_loss = -tf.reduce_sum(self.images * tf.log(1e-8 + generated_flat) + (1-self.images) * tf.log(1e-8 + 1 - generated_flat),1)
+        self.calc_generation_loss = -tf.reduce_sum(self.images * tf.log(1e-8 + generated_flat) + (1-self.images) * tf.log(1e-8 + 1 - generated_flat),1)
 
-        self.latent_loss = 0.5 * tf.reduce_sum(tf.square(z_mean) + tf.square(z_stddev) - tf.log(tf.square(z_stddev)) - 1,1)
-        self.cost = tf.reduce_mean(self.generation_loss + self.latent_loss)
+        self.calc_latent_loss = 0.5 * tf.reduce_sum(tf.square(z_mean) + tf.square(z_stddev) - tf.log(tf.square(z_stddev)) - 1,1)
+        self.cost = tf.reduce_mean(self.calc_generation_loss + self.calc_latent_loss)
         self.optimizer = tf.train.AdamOptimizer(0.001).minimize(self.cost)
 
 
@@ -64,6 +64,21 @@ class LatentAttention():
 
         return h2
 
+    def print_epoch(self, epoch, gen_loss, lat_loss, saver, sess,
+                    visualization):
+        print("epoch {}: genloss {} latloss {}".format(
+            epoch,
+            np.mean(gen_loss), np.mean(lat_loss)))
+
+        saver.save(sess, os.getcwd()+"/training/train",
+                   global_step=epoch)
+        generated_test = sess.run(
+            self.generate_images,
+            feed_dict={self.images: visualization}).reshape(
+                self.batchsize, 28, 28)
+        ims("results/"+str(epoch)+".jpg",
+            merge(generated_test[:64], [8, 8]))
+
     def train(self):
         visualization, vis_labels = next_batch_partial(
             self.mnist.train, self.batchsize, self.n_train)
@@ -71,20 +86,23 @@ class LatentAttention():
         ims("results/base.jpg",merge(reshaped_vis[:64],[8,8]))
         # train
         saver = tf.train.Saver(max_to_keep=2)
+        data = self.mnist.train
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
-            for epoch in range(10):
-                for idx in range(int(self.n_train / self.batchsize)):
-                    batch, batch_labels = next_batch_partial(
-                        self.mnist.train, self.batchsize, self.n_train)
-                    _, gen_loss, lat_loss = sess.run((self.optimizer, self.generation_loss, self.latent_loss), feed_dict={self.images: batch})
-                    # dumb hack to print cost every epoch
-                    if idx % (self.n_train - 3) == 0:
-                        print("epoch {}: genloss {} latloss {}".format(epoch, np.mean(gen_loss), np.mean(lat_loss)))
-                        saver.save(sess, os.getcwd()+"/training/train",global_step=epoch)
-                        generated_test = sess.run(self.generated_images, feed_dict={self.images: visualization})
-                        generated_test = generated_test.reshape(self.batchsize,28,28)
-                        ims("results/"+str(epoch)+".jpg",merge(generated_test[:64],[8,8]))
+            last_epochs_completed = -1
+            while(data.epochs_completed < 10):
+                batch, batch_labels = next_batch_partial(
+                    data, self.batchsize, self.n_train)
+                _, gen_loss, lat_loss = sess.run(
+                    (self.optimizer, self.calc_generation_loss,
+                     self.calc_latent_loss),
+                    feed_dict={self.images: batch})
+                if last_epochs_completed != data.epochs_completed:
+                    last_epochs_completed = data.epochs_completed
+                    self.print_epoch(
+                        last_epochs_completed, gen_loss, lat_loss,
+                        saver, sess, visualization
+                    )
 
 
 if __name__ == '__main__':
