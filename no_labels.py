@@ -22,6 +22,8 @@ class LatentAttention():
         self.n_train = int(frac_train * self.mnist.train.num_examples)
         self.n_test = self.mnist.train.num_examples - self.n_train
 
+        assert batchsize <= self.n_test
+
         self.n_z = n_z
         self.batchsize = batchsize
 
@@ -80,13 +82,21 @@ class LatentAttention():
             merge(generated_test[:64], [8, 8]))
 
     def train(self):
-        visualization, vis_labels = next_batch_partial(
-            self.mnist.train, self.batchsize, self.n_train)
-        reshaped_vis = visualization.reshape(self.batchsize,28,28)
+        data = self.mnist.train
+        vis_size = self.batchsize  # Recognition assumes entries are
+                                   # this long ... so must only use
+                                   # this much for the visualization
+        if self.n_test == 0:
+            visualization, vis_labels = next_batch_partial(
+                data, vis_size, self.n_train)
+        else:
+            visualization = data.images[self.n_train:self.n_train+vis_size]
+            vis_labels = data.labels[self.n_train:self.n_train+vis_size]
+
+        reshaped_vis = visualization.reshape(vis_size,28,28)
         ims("results/base.jpg",merge(reshaped_vis[:64],[8,8]))
         # train
         saver = tf.train.Saver(max_to_keep=2)
-        data = self.mnist.train
         with tf.Session() as sess:
             sess.run(tf.initialize_all_variables())
             last_epochs_completed = -1
@@ -106,5 +116,5 @@ class LatentAttention():
 
 
 if __name__ == '__main__':
-    model = LatentAttention(1, 20, 100)
+    model = LatentAttention(0.9, 20, 100)
     model.train()
