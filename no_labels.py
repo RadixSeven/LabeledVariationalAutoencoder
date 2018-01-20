@@ -44,6 +44,7 @@ class LatentAttention():
         self.d_h2 = d_h2
         self.run_id = run_id
         self.results_dir = "results_{:04d}".format(self.run_id)
+        self.max_epochs_without_improvement = 6
         os.makedirs(self.results_dir, exist_ok=True)
 
         assert batchsize <= self.n_test
@@ -109,11 +110,15 @@ class LatentAttention():
         ims(os.path.join(self.results_dir, fn),
             merge(val_ims.reshape(-1, 28, 28)[:64], [8, 8]))
 
-        self.validation_error = np.mean(val_error)
+        self.validation_error = float(np.mean(val_error))
         print("epoch {:02d}: genloss {:7.3f} latloss {:7.3f} "
               "validation_genloss {:7.3f}".format(
                   epoch,
                   np.mean(gen_loss), np.mean(lat_loss), self.validation_error))
+
+        if self.best is None or self.validation_error < self.best:
+            self.best_epoch = epoch
+            self.best = self.validation_error
 
     def train(self):
         self.validation_error = 100000.0
@@ -130,11 +135,17 @@ class LatentAttention():
             ims(os.path.join(self.results_dir, "base.jpg"),
                 merge(reshaped_val[:64], [8, 8]))
             # train
+            self.best = None
+            self.best_epoch = 0
             saver = tf.train.Saver(max_to_keep=2)
             with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
                 last_epochs_completed = -1
-                while(data.epochs_completed < self.max_epochs):
+                while(
+                        data.epochs_completed < self.max_epochs and
+                        data.epochs_completed - self.best_epoch <
+                        self.max_epochs_without_improvement
+                ):
                     if math.isnan(float(self.validation_error)):
                         # Quit early on nan since it will just propagate
                         # and be the final result anyway
