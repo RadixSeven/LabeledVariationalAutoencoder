@@ -109,6 +109,7 @@ class LatentAttention():
                   np.mean(gen_loss), np.mean(lat_loss), self.validation_error))
 
     def train(self):
+        self.validation_error = 100000.0
         try:
             data = self.mnist.train
             if self.n_test == 0:
@@ -140,7 +141,7 @@ class LatentAttention():
                         )
         except Exception:
             print("Exception occurred.")
-            self.validation_error = 1e15
+            self.validation_error = 100000.0
 
 if __name__ == '__main__':
     search_space = {
@@ -156,6 +157,7 @@ if __name__ == '__main__':
     connection = choco.SQLiteConnection("sqlite:///no_labels_results.sqlite3")
     sampler = choco.Bayes(connection, search_space)
     token, sample = sampler.next()
+    print("Parameters: {}".format(sample))
     model = LatentAttention(0.99, **sample)
     model.train()
-    sampler.update(token, model.validation_error)
+    sampler.update(token, float(model.validation_error))
