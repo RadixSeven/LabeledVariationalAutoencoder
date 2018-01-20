@@ -169,7 +169,7 @@ class LatentAttention():
 if __name__ == '__main__':
     search_space = {
         "n_z": choco.quantized_uniform(5, 100, 1),
-        "learning_rate": choco.log(-20, -2, 2),
+        "learning_rate": choco.log(-20, -8, 2),
         "max_epochs": choco.quantized_uniform(5, 200, 1),
         "e_h1": choco.quantized_uniform(16, 256, 1),
         "e_h2": choco.quantized_uniform(16, 256, 1),
