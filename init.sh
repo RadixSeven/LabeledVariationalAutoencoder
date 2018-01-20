@@ -26,5 +26,5 @@ else
     tensorflow=tensorflow
 fi
 chocolate=git+https://github.com/AIworx-Labs/chocolate@master
-pip3 install $tensorflow matplotlib scipy pillow "$chocolate"
+pip3 install $tensorflow matplotlib scipy pillow "$chocolate" ghalton
 echo -e "\nNow run\n\nsource $env_dir/bin/activate"
