@@ -3,6 +3,7 @@ from ops import conv2d, conv_transpose, dense, lrelu
 from scipy.misc import imsave as ims
 from utils import merge
 import chocolate as choco
+import math
 import numpy as np
 import os
 import tensorflow as tf
@@ -54,9 +55,8 @@ class LatentAttention():
         self.generate_images = self.decode(guessed_z)
         generated_flat = tf.reshape(self.generate_images, [-1, 28*28])
 
-        self.calc_generation_loss = -tf.reduce_sum(
-            self.images * tf.log(1e-8 + generated_flat)
-            + (1-self.images) * tf.log(1e-8 + 1 - generated_flat), 1)
+        self.diffs = self.images - generated_flat
+        self.calc_generation_loss = tf.reduce_sum(tf.square(self.diffs), 1)
 
         self.calc_latent_loss = 0.5 * tf.reduce_sum(
             tf.square(z_mean) + tf.square(z_stddev) -
@@ -127,6 +127,10 @@ class LatentAttention():
                 sess.run(tf.initialize_all_variables())
                 last_epochs_completed = -1
                 while(data.epochs_completed < self.max_epochs):
+                    if math.isnan(float(self.validation_error)):
+                        # Quit early on nan since it will just propagate
+                        # and be the final result anyway
+                        break
                     batch, batch_labels = next_batch_partial(
                         data, self.batchsize, self.n_train)
                     _, gen_loss, lat_loss = sess.run(
