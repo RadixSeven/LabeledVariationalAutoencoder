@@ -1,11 +1,11 @@
-import tensorflow as tf
-import numpy as np
-import tensorflow.examples.tutorials.mnist.input_data as input_data
-import os
+from next_batch_partial import next_batch_partial
+from ops import conv2d, conv_transpose, dense, lrelu
 from scipy.misc import imsave as ims
 from utils import merge
-from ops import conv2d, conv_transpose, dense, lrelu
-from next_batch_partial import next_batch_partial
+import numpy as np
+import os
+import tensorflow as tf
+import tensorflow.examples.tutorials.mnist.input_data as input_data
 
 
 class LatentAttention():
