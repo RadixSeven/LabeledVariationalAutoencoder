@@ -6,13 +6,14 @@ import chocolate as choco
 import math
 import numpy as np
 import os
+import os.path
 import tensorflow as tf
 import tensorflow.examples.tutorials.mnist.input_data as input_data
 
 
 class LatentAttention():
     def __init__(self, frac_train, n_z, batchsize, learning_rate, max_epochs,
-                 e_h1, e_h2, d_h1, d_h2):
+                 e_h1, e_h2, d_h1, d_h2, run_id):
         """
         frac_train: (0..1) the fraction of the training set to use for
             training ... the rest will be used for validation
@@ -31,6 +32,7 @@ class LatentAttention():
             layer in decoder
         d_h2: (positive integer) number of layers in input of second hidden
             layer in decoder
+        run_id: (positive integer) number uniquely identifying the run
         """
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_train = int(frac_train * self.mnist.train.num_examples)
@@ -40,6 +42,9 @@ class LatentAttention():
         self.e_h2 = e_h2
         self.d_h1 = d_h1
         self.d_h2 = d_h2
+        self.run_id = run_id
+        self.results_dir = "results_{:04d}".format(self.run_id)
+        os.makedirs(self.results_dir, exist_ok=True)
 
         assert batchsize <= self.n_test
 
@@ -99,7 +104,8 @@ class LatentAttention():
         val_ims, val_error = sess.run(
             [self.generate_images, self.calc_generation_loss],
             feed_dict={self.images: validation})
-        ims("results/"+str(epoch)+".jpg",
+        fn="{:04d}.jpg".format(epoch)
+        ims(os.path.join(self.results_dir, fn),
             merge(val_ims.reshape(-1, 28, 28)[:64], [8, 8]))
 
         self.validation_error = np.mean(val_error)
@@ -120,7 +126,8 @@ class LatentAttention():
                 val_labels = data.labels[self.n_train:]
 
             reshaped_val = validation.reshape(-1, 28, 28)
-            ims("results/base.jpg", merge(reshaped_val[:64], [8, 8]))
+            ims(os.path.join(self.results_dir, "base.jpg"),
+                merge(reshaped_val[:64], [8, 8]))
             # train
             saver = tf.train.Saver(max_to_keep=2)
             with tf.Session() as sess:
@@ -162,6 +169,7 @@ if __name__ == '__main__':
     sampler = choco.Bayes(connection, search_space)
     token, sample = sampler.next()
     print("Parameters: {} Token: {}".format(sample, token))
-    model = LatentAttention(0.99, **sample)
+    run_id = token['_chocolate_id']
+    model = LatentAttention(0.99, run_id=run_id, **sample)
     model.train()
     sampler.update(token, float(model.validation_error))
