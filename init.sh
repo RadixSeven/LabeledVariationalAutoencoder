@@ -25,5 +25,6 @@ else
     echo "Using non-gpu tensorflow"
     tensorflow=tensorflow
 fi
-pip3 install $tensorflow matplotlib scipy pillow
+chocolate=git+https://github.com/AIworx-Labs/chocolate@master
+pip3 install $tensorflow matplotlib scipy pillow "$chocolate"
 echo -e "\nNow run\n\nsource $env_dir/bin/activate"
