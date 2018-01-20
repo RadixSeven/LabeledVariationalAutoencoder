@@ -9,7 +9,8 @@ from next_batch_partial import next_batch_partial
 
 
 class LatentAttention():
-    def __init__(self, frac_train, n_z, batchsize, learning_rate):
+    def __init__(self, frac_train, n_z, batchsize, learning_rate,
+                 e_h1, e_h2, d_h1, d_h2):
         """
         frac_train: (0..1) the fraction of the training set to use for
             training ... the rest will be used for validation
@@ -19,10 +20,22 @@ class LatentAttention():
             minibatch
         learning_rate: (positive float) the learning rate used by the
             optimizer
+        e_h1: (positive integer) number of channels in output of first hidden
+            layer in encoder
+        e_h2: (positive integer) number of layers in output of second hidden
+            layer in encoder
+        d_h1: (positive integer) number of channels in input of first hidden
+            layer in decoder
+        d_h2: (positive integer) number of layers in input of second hidden
+            layer in decoder
         """
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_train = int(frac_train * self.mnist.train.num_examples)
         self.n_test = self.mnist.train.num_examples - self.n_train
+        self.e_h1 = e_h1
+        self.e_h2 = e_h2
+        self.d_h1 = d_h1
+        self.d_h2 = d_h2
 
         assert batchsize <= self.n_test
 
@@ -53,24 +66,24 @@ class LatentAttention():
     def encode(self, input_images):
         with tf.variable_scope("encode"):
             # 28x28x1 -> 14x14x16
-            h1 = lrelu(conv2d(input_images, 1, 16, "d_h1"))
+            h1 = lrelu(conv2d(input_images, 1, self.e_h1, "e_h1"))
             # 14x14x16 -> 7x7x32
-            h2 = lrelu(conv2d(h1, 16, 32, "d_h2"))
-            h2_flat = tf.reshape(h2, [-1, 7*7*32])
+            h2 = lrelu(conv2d(h1, self.e_h1, self.e_h2, "e_h2"))
+            h2_flat = tf.reshape(h2, [-1, 7*7*self.e_h2])
 
-            w_mean = dense(h2_flat, 7*7*32, self.n_z, "w_mean")
-            w_stddev = dense(h2_flat, 7*7*32, self.n_z, "w_stddev")
+            w_mean = dense(h2_flat, 7*7*self.e_h2, self.n_z, "w_mean")
+            w_stddev = dense(h2_flat, 7*7*self.e_h2, self.n_z, "w_stddev")
 
         return w_mean, w_stddev
 
     def decode(self, z):
         with tf.variable_scope("decode"):
             z_shape = tf.shape(z)
-            z_develop = dense(z, self.n_z, 7*7*32, scope='z_matrix')
-            z_matrix = tf.nn.relu(tf.reshape(z_develop, [-1, 7, 7, 32]))
-            h1 = tf.nn.relu(
-                conv_transpose(z_matrix, [z_shape[0], 14, 14, 16], "g_h1"))
-            h2 = conv_transpose(h1, [z_shape[0], 28, 28, 1], "g_h2")
+            z_develop = dense(z, self.n_z, 7*7*self.d_h1, scope='z_matrix')
+            z_matrix = tf.nn.relu(tf.reshape(z_develop, [-1, 7, 7, self.d_h1]))
+            h1 = tf.nn.relu(conv_transpose(
+                z_matrix, [z_shape[0], 14, 14, self.d_h2], "d_h1"))
+            h2 = conv_transpose(h1, [z_shape[0], 28, 28, 1], "d_h2")
             h2 = tf.nn.sigmoid(h2)
 
         return h2
@@ -123,5 +136,8 @@ class LatentAttention():
 
 
 if __name__ == '__main__':
-    model = LatentAttention(0.9, 20, 100, 0.001)
+    model = LatentAttention(
+        0.9, 20, 100, 0.001,
+        16, 32, 32, 16
+    )
     model.train()
