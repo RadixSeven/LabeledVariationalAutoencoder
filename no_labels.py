@@ -2,6 +2,7 @@ from next_batch_partial import next_batch_partial
 from ops import conv2d, conv_transpose, dense, lrelu
 from scipy.misc import imsave as ims
 from utils import merge
+import chocolate as choco
 import numpy as np
 import os
 import tensorflow as tf
@@ -9,7 +10,7 @@ import tensorflow.examples.tutorials.mnist.input_data as input_data
 
 
 class LatentAttention():
-    def __init__(self, frac_train, n_z, batchsize, learning_rate,
+    def __init__(self, frac_train, n_z, batchsize, learning_rate, max_epochs,
                  e_h1, e_h2, d_h1, d_h2):
         """
         frac_train: (0..1) the fraction of the training set to use for
@@ -20,6 +21,7 @@ class LatentAttention():
             minibatch
         learning_rate: (positive float) the learning rate used by the
             optimizer
+        max_epochs: number of epochs to run for
         e_h1: (positive integer) number of channels in output of first hidden
             layer in encoder
         e_h2: (positive integer) number of layers in output of second hidden
@@ -32,6 +34,7 @@ class LatentAttention():
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_train = int(frac_train * self.mnist.train.num_examples)
         self.n_test = self.mnist.train.num_examples - self.n_train
+        self.max_epochs = max_epochs
         self.e_h1 = e_h1
         self.e_h2 = e_h2
         self.d_h1 = d_h1
@@ -99,46 +102,61 @@ class LatentAttention():
         ims("results/"+str(epoch)+".jpg",
             merge(val_ims.reshape(-1, 28, 28)[:64], [8, 8]))
 
-        self.val_error = np.mean(val_error)
+        self.validation_error = np.mean(val_error)
         print("epoch {:02d}: genloss {:7.3f} latloss {:7.3f} "
               "validation_genloss {:7.3f}".format(
                   epoch,
-                  np.mean(gen_loss), np.mean(lat_loss), self.val_error))
+                  np.mean(gen_loss), np.mean(lat_loss), self.validation_error))
 
     def train(self):
-        data = self.mnist.train
-        if self.n_test == 0:
-            validation, val_labels = next_batch_partial(
-                data, self.batchsize, self.n_train)
-        else:
-            validation = data.images[self.n_train:]
-            val_labels = data.labels[self.n_train:]
-
-        reshaped_val = validation.reshape(-1, 28, 28)
-        ims("results/base.jpg", merge(reshaped_val[:64], [8, 8]))
-        # train
-        saver = tf.train.Saver(max_to_keep=2)
-        with tf.Session() as sess:
-            sess.run(tf.initialize_all_variables())
-            last_epochs_completed = -1
-            while(data.epochs_completed < 10):
-                batch, batch_labels = next_batch_partial(
+        try:
+            data = self.mnist.train
+            if self.n_test == 0:
+                validation, val_labels = next_batch_partial(
                     data, self.batchsize, self.n_train)
-                _, gen_loss, lat_loss = sess.run(
-                    (self.optimizer, self.calc_generation_loss,
-                     self.calc_latent_loss),
-                    feed_dict={self.images: batch})
-                if last_epochs_completed != data.epochs_completed:
-                    last_epochs_completed = data.epochs_completed
-                    self.print_epoch(
-                        last_epochs_completed, gen_loss, lat_loss,
-                        saver, sess, validation
-                    )
+            else:
+                validation = data.images[self.n_train:]
+                val_labels = data.labels[self.n_train:]
 
+            reshaped_val = validation.reshape(-1, 28, 28)
+            ims("results/base.jpg", merge(reshaped_val[:64], [8, 8]))
+            # train
+            saver = tf.train.Saver(max_to_keep=2)
+            with tf.Session() as sess:
+                sess.run(tf.initialize_all_variables())
+                last_epochs_completed = -1
+                while(data.epochs_completed < self.max_epochs):
+                    batch, batch_labels = next_batch_partial(
+                        data, self.batchsize, self.n_train)
+                    _, gen_loss, lat_loss = sess.run(
+                        (self.optimizer, self.calc_generation_loss,
+                         self.calc_latent_loss),
+                        feed_dict={self.images: batch})
+                    if last_epochs_completed != data.epochs_completed:
+                        last_epochs_completed = data.epochs_completed
+                        self.print_epoch(
+                            last_epochs_completed, gen_loss, lat_loss,
+                            saver, sess, validation
+                        )
+        except Exception:
+            print("Exception occurred.")
+            self.validation_error = float('inf')
 
 if __name__ == '__main__':
-    model = LatentAttention(
-        0.9, 20, 100, 0.001,
-        16, 32, 32, 16
-    )
+    search_space = {
+        "n_z": choco.quantized_uniform(1, 256, 1),
+        "batchsize": choco.quantized_uniform(1, 200, 1),
+        "learning_rate": choco.log(-45, 2, 2),
+        "max_epochs": choco.quantized_uniform(1, 256, 1),
+        "e_h1": choco.quantized_uniform(1, 256, 1),
+        "e_h2": choco.quantized_uniform(1, 256, 1),
+        "d_h1": choco.quantized_uniform(1, 256, 1),
+        "d_h2": choco.quantized_uniform(1, 256, 1),
+    }
+    connection = choco.SQLiteConnection("sqlite:///no_labels_results.sqlite3")
+    sampler = choco.QuasiRandom(connection, search_space,
+                                seed=42, skip=0)
+    token, sample = sampler.next()
+    model = LatentAttention(0.99, **sample)
     model.train()
+    sampler.update(token, model.validation_error)
