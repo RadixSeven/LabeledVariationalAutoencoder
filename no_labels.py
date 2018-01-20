@@ -30,11 +30,11 @@ class LatentAttention():
         self.images = tf.placeholder(tf.float32, [None, 784])
         image_matrix = tf.reshape(self.images,[-1, 28, 28, 1])
         z_mean, z_stddev = self.recognition(image_matrix)
-        samples = tf.random_normal([self.batchsize,self.n_z],0,1,dtype=tf.float32)
+        samples = tf.random_normal(z_stddev.get_shape(),0,1,dtype=tf.float32)
         guessed_z = z_mean + (z_stddev * samples)
 
         self.generate_images = self.generation(guessed_z)
-        generated_flat = tf.reshape(self.generate_images, [self.batchsize, 28*28])
+        generated_flat = tf.reshape(self.generate_images, [-1, 28*28])
 
         self.calc_generation_loss = -tf.reduce_sum(self.images * tf.log(1e-8 + generated_flat) + (1-self.images) * tf.log(1e-8 + 1 - generated_flat),1)
 
@@ -48,7 +48,7 @@ class LatentAttention():
         with tf.variable_scope("recognition"):
             h1 = lrelu(conv2d(input_images, 1, 16, "d_h1")) # 28x28x1 -> 14x14x16
             h2 = lrelu(conv2d(h1, 16, 32, "d_h2")) # 14x14x16 -> 7x7x32
-            h2_flat = tf.reshape(h2,[self.batchsize, 7*7*32])
+            h2_flat = tf.reshape(h2,[-1, 7*7*32])
 
             w_mean = dense(h2_flat, 7*7*32, self.n_z, "w_mean")
             w_stddev = dense(h2_flat, 7*7*32, self.n_z, "w_stddev")
@@ -59,7 +59,7 @@ class LatentAttention():
     def generation(self, z):
         with tf.variable_scope("generation"):
             z_develop = dense(z, self.n_z, 7*7*32, scope='z_matrix')
-            z_matrix = tf.nn.relu(tf.reshape(z_develop, [self.batchsize, 7, 7, 32]))
+            z_matrix = tf.nn.relu(tf.reshape(z_develop, [-1, 7, 7, 32]))
             h1 = tf.nn.relu(conv_transpose(z_matrix, [self.batchsize, 14, 14, 16], "g_h1"))
             h2 = conv_transpose(h1, [self.batchsize, 28, 28, 1], "g_h2")
             h2 = tf.nn.sigmoid(h2)
@@ -77,7 +77,7 @@ class LatentAttention():
         generated_test = sess.run(
             self.generate_images,
             feed_dict={self.images: visualization}).reshape(
-                self.batchsize, 28, 28)
+                -1, 28, 28)
         ims("results/"+str(epoch)+".jpg",
             merge(generated_test[:64], [8, 8]))
 
