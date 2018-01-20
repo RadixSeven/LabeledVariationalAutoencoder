@@ -99,10 +99,11 @@ class LatentAttention():
         ims("results/"+str(epoch)+".jpg",
             merge(val_ims.reshape(-1, 28, 28)[:64], [8, 8]))
 
+        self.val_error = np.mean(val_error)
         print("epoch {:02d}: genloss {:7.3f} latloss {:7.3f} "
               "validation_genloss {:7.3f}".format(
                   epoch,
-                  np.mean(gen_loss), np.mean(lat_loss), np.mean(val_error)))
+                  np.mean(gen_loss), np.mean(lat_loss), self.val_error))
 
     def train(self):
         data = self.mnist.train
