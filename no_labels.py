@@ -68,31 +68,31 @@ class LatentAttention():
         return h2
 
     def print_epoch(self, epoch, gen_loss, lat_loss, saver, sess,
-                    visualization):
-        print("epoch {}: genloss {} latloss {}".format(
-            epoch,
-            np.mean(gen_loss), np.mean(lat_loss)))
+                    validation):
 
         saver.save(sess, os.getcwd()+"/training/train",
                    global_step=epoch)
-        generated_test = sess.run(
-            self.generate_images,
-            feed_dict={self.images: visualization}).reshape(
-                -1, 28, 28)
+        val_ims, val_error = sess.run(
+            [self.generate_images, self.calc_generation_loss],
+            feed_dict={self.images: validation})
         ims("results/"+str(epoch)+".jpg",
-            merge(generated_test[:64], [8, 8]))
+            merge(val_ims.reshape(-1, 28, 28)[:64], [8, 8]))
+
+        print("epoch {:02d}: genloss {:7.3f} latloss {:7.3f} "
+              "validation_genloss {:7.3f}".format(
+            epoch, np.mean(gen_loss), np.mean(lat_loss), np.mean(val_error)))
 
     def train(self):
         data = self.mnist.train
         if self.n_test == 0:
-            visualization, vis_labels = next_batch_partial(
+            validation, val_labels = next_batch_partial(
                 data, self.batchsize, self.n_train)
         else:
-            visualization = data.images[self.n_train:]
-            vis_labels = data.labels[self.n_train:]
+            validation = data.images[self.n_train:]
+            val_labels = data.labels[self.n_train:]
 
-        reshaped_vis = visualization.reshape(-1,28,28)
-        ims("results/base.jpg",merge(reshaped_vis[:64],[8,8]))
+        reshaped_val = validation.reshape(-1,28,28)
+        ims("results/base.jpg", merge(reshaped_val[:64],[8,8]))
         # train
         saver = tf.train.Saver(max_to_keep=2)
         with tf.Session() as sess:
@@ -109,7 +109,7 @@ class LatentAttention():
                     last_epochs_completed = data.epochs_completed
                     self.print_epoch(
                         last_epochs_completed, gen_loss, lat_loss,
-                        saver, sess, visualization
+                        saver, sess, validation
                     )
 
 
