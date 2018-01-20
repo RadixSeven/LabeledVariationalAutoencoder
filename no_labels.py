@@ -132,7 +132,7 @@ class LatentAttention():
             # train
             saver = tf.train.Saver(max_to_keep=2)
             with tf.Session() as sess:
-                sess.run(tf.initialize_all_variables())
+                sess.run(tf.global_variables_initializer())
                 last_epochs_completed = -1
                 while(data.epochs_completed < self.max_epochs):
                     if math.isnan(float(self.validation_error)):
