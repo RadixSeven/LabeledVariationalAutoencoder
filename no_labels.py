@@ -149,19 +149,19 @@ class LatentAttention():
 
 if __name__ == '__main__':
     search_space = {
-        "n_z": choco.quantized_uniform(1, 100, 1),
-        "batchsize": choco.quantized_uniform(1, 200, 1),
-        "learning_rate": choco.log(-45, 2, 2),
-        "max_epochs": choco.quantized_uniform(1, 30, 1),
-        "e_h1": choco.quantized_uniform(1, 64, 1),
-        "e_h2": choco.quantized_uniform(1, 64, 1),
-        "d_h1": choco.quantized_uniform(1, 64, 1),
-        "d_h2": choco.quantized_uniform(1, 64, 1),
+        "n_z": choco.quantized_uniform(5, 100, 1),
+        "batchsize": choco.quantized_uniform(90, 150, 1),
+        "learning_rate": choco.log(-10, -2, 2),
+        "max_epochs": choco.quantized_uniform(5, 35, 1),
+        "e_h1": choco.quantized_uniform(16, 128, 1),
+        "e_h2": choco.quantized_uniform(16, 128, 1),
+        "d_h1": choco.quantized_uniform(16, 128, 1),
+        "d_h2": choco.quantized_uniform(16, 128, 1),
     }
     connection = choco.SQLiteConnection("sqlite:///no_labels_results.sqlite3")
     sampler = choco.Bayes(connection, search_space)
     token, sample = sampler.next()
-    print("Parameters: {}".format(sample))
+    print("Parameters: {} Token: {}".format(sample, token))
     model = LatentAttention(0.99, **sample)
     model.train()
     sampler.update(token, float(model.validation_error))
