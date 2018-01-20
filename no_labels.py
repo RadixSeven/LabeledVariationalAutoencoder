@@ -58,10 +58,11 @@ class LatentAttention():
     # decoder
     def generation(self, z):
         with tf.variable_scope("generation"):
+            z_shape = tf.shape(z)
             z_develop = dense(z, self.n_z, 7*7*32, scope='z_matrix')
             z_matrix = tf.nn.relu(tf.reshape(z_develop, [-1, 7, 7, 32]))
-            h1 = tf.nn.relu(conv_transpose(z_matrix, [self.batchsize, 14, 14, 16], "g_h1"))
-            h2 = conv_transpose(h1, [self.batchsize, 28, 28, 1], "g_h2")
+            h1 = tf.nn.relu(conv_transpose(z_matrix, [z_shape[0], 14, 14, 16], "g_h1"))
+            h2 = conv_transpose(h1, [z_shape[0], 28, 28, 1], "g_h2")
             h2 = tf.nn.sigmoid(h2)
 
         return h2
