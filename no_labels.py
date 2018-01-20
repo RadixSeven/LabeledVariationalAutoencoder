@@ -84,17 +84,14 @@ class LatentAttention():
 
     def train(self):
         data = self.mnist.train
-        vis_size = self.batchsize  # Recognition assumes entries are
-                                   # this long ... so must only use
-                                   # this much for the visualization
         if self.n_test == 0:
             visualization, vis_labels = next_batch_partial(
-                data, vis_size, self.n_train)
+                data, self.batchsize, self.n_train)
         else:
-            visualization = data.images[self.n_train:self.n_train+vis_size]
-            vis_labels = data.labels[self.n_train:self.n_train+vis_size]
+            visualization = data.images[self.n_train:]
+            vis_labels = data.labels[self.n_train:]
 
-        reshaped_vis = visualization.reshape(vis_size,28,28)
+        reshaped_vis = visualization.reshape(-1,28,28)
         ims("results/base.jpg",merge(reshaped_vis[:64],[8,8]))
         # train
         saver = tf.train.Saver(max_to_keep=2)
