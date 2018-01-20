@@ -154,8 +154,7 @@ if __name__ == '__main__':
         "d_h2": choco.quantized_uniform(1, 256, 1),
     }
     connection = choco.SQLiteConnection("sqlite:///no_labels_results.sqlite3")
-    sampler = choco.QuasiRandom(connection, search_space,
-                                seed=42, skip=0)
+    sampler = choco.Bayes(connection, search_space)
     token, sample = sampler.next()
     model = LatentAttention(0.99, **sample)
     model.train()
