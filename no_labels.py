@@ -30,7 +30,7 @@ class LatentAttention():
         self.images = tf.placeholder(tf.float32, [None, 784])
         image_matrix = tf.reshape(self.images,[-1, 28, 28, 1])
         z_mean, z_stddev = self.recognition(image_matrix)
-        samples = tf.random_normal(z_stddev.get_shape(),0,1,dtype=tf.float32)
+        samples = tf.random_normal(tf.shape(z_stddev),0,1,dtype=tf.float32)
         guessed_z = z_mean + (z_stddev * samples)
 
         self.generate_images = self.generation(guessed_z)
