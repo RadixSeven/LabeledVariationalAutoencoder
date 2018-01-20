@@ -140,18 +140,18 @@ class LatentAttention():
                         )
         except Exception:
             print("Exception occurred.")
-            self.validation_error = float('inf')
+            self.validation_error = 1e15
 
 if __name__ == '__main__':
     search_space = {
-        "n_z": choco.quantized_uniform(1, 256, 1),
+        "n_z": choco.quantized_uniform(1, 100, 1),
         "batchsize": choco.quantized_uniform(1, 200, 1),
         "learning_rate": choco.log(-45, 2, 2),
-        "max_epochs": choco.quantized_uniform(1, 256, 1),
-        "e_h1": choco.quantized_uniform(1, 256, 1),
-        "e_h2": choco.quantized_uniform(1, 256, 1),
-        "d_h1": choco.quantized_uniform(1, 256, 1),
-        "d_h2": choco.quantized_uniform(1, 256, 1),
+        "max_epochs": choco.quantized_uniform(1, 30, 1),
+        "e_h1": choco.quantized_uniform(1, 64, 1),
+        "e_h2": choco.quantized_uniform(1, 64, 1),
+        "d_h1": choco.quantized_uniform(1, 64, 1),
+        "d_h2": choco.quantized_uniform(1, 64, 1),
     }
     connection = choco.SQLiteConnection("sqlite:///no_labels_results.sqlite3")
     sampler = choco.Bayes(connection, search_space)
