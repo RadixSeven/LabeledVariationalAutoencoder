@@ -9,7 +9,7 @@ from ops import *
 from next_batch_partial import next_batch_partial
 
 class LatentAttention():
-    def __init__(self, frac_train, n_z, batchsize):
+    def __init__(self, frac_train, n_z, batchsize, learning_rate):
         """
         frac_train: (0..1) the fraction of the training set to use for
             training ... the rest will be used for validation
@@ -17,6 +17,8 @@ class LatentAttention():
             the decoder / produced by the endcoder
         batchize: (positive int) number of items to include in each training
             minibatch
+        learning_rate: (positive float) the learning rate used by the
+            optimizer
         """
         self.mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
         self.n_train = int(frac_train * self.mnist.train.num_examples)
@@ -40,7 +42,8 @@ class LatentAttention():
 
         self.calc_latent_loss = 0.5 * tf.reduce_sum(tf.square(z_mean) + tf.square(z_stddev) - tf.log(tf.square(z_stddev)) - 1,1)
         self.cost = tf.reduce_mean(self.calc_generation_loss + self.calc_latent_loss)
-        self.optimizer = tf.train.AdamOptimizer(0.001).minimize(self.cost)
+        self.optimizer = tf.train.AdamOptimizer(
+            learning_rate).minimize(self.cost)
 
 
     # encoder
@@ -114,5 +117,5 @@ class LatentAttention():
 
 
 if __name__ == '__main__':
-    model = LatentAttention(0.9, 20, 100)
+    model = LatentAttention(0.9, 20, 100, 0.001)
     model.train()
