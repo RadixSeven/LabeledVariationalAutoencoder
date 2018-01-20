@@ -99,7 +99,8 @@ class LatentAttention():
     def print_epoch(self, epoch, gen_loss, lat_loss, saver, sess,
                     validation):
 
-        saver.save(sess, os.getcwd()+"/training/train",
+        saver.save(sess, os.path.join(self.results_dir, 'checkpoints',
+                                      'checkpoint'),
                    global_step=epoch)
         val_ims, val_error = sess.run(
             [self.generate_images, self.calc_generation_loss],
