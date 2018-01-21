@@ -1,0 +1,16 @@
+Extracting MNIST_data/train-images-idx3-ubyte.gz
+Extracting MNIST_data/train-labels-idx1-ubyte.gz
+Extracting MNIST_data/t10k-images-idx3-ubyte.gz
+Extracting MNIST_data/t10k-labels-idx1-ubyte.gz
+epoch 00: genloss 181.670 latloss 110.641 validation_genloss 181.258
+epoch 01: genloss  38.257 latloss   5.977 validation_genloss  36.182
+epoch 02: genloss  22.015 latloss  10.329 validation_genloss  22.311
+epoch 03: genloss  21.485 latloss  11.378 validation_genloss  19.581
+epoch 04: genloss  19.038 latloss  11.377 validation_genloss  18.520
+epoch 05: genloss  18.320 latloss  11.417 validation_genloss  18.099
+epoch 06: genloss  19.134 latloss  11.770 validation_genloss  17.694
+epoch 07: genloss  16.693 latloss  12.454 validation_genloss  17.420
+epoch 08: genloss  17.586 latloss  12.488 validation_genloss  16.642
+epoch 09: genloss  17.448 latloss  12.244 validation_genloss  17.174
+epoch 10: genloss  17.060 latloss  11.999 validation_genloss  16.541
+loss=16.541011810302734
