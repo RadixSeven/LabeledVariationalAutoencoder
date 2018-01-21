@@ -7,6 +7,7 @@ import math
 import numpy as np
 import os
 import os.path
+import sys
 import tensorflow as tf
 import tensorflow.examples.tutorials.mnist.input_data as input_data
 
@@ -167,6 +168,16 @@ class LatentAttention():
             self.validation_error = 100000.0
 
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        # original params from article
+        model=LatentAttention(frac_train=0.99, n_z=20, batchsize=100,
+                              learning_rate=0.001, max_epochs=10,
+                              e_h1=16, e_h2=32, d_h1=32, d_h2=16, run_id=-1);
+        model.train()
+        print("loss={}".format(float(model.validation_error)))
+        exit(0)
+
+    # Params from optimizer
     search_space = {
         "n_z": choco.quantized_uniform(5, 100, 1),
         "learning_rate": choco.log(-20, -8, 2),
